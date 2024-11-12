@@ -3,17 +3,14 @@ import { useState } from "react";
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
-  const [winnerSquares, setWinner] = useState(Array(3).fill(null)); // To store the winning combination
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
-  function handlePlay(nextSquares, winnerSquares) {
+  function handlePlay(nextSquares) {
     // spread ... operator to add next snapshot of game
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
-    setWinner(winnerSquares); // Store the winning combination
-    console.log("GAME", winnerSquares);
   }
 
   function jumpTo(nextMove) {
@@ -52,12 +49,7 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board
-          xIsNext={xIsNext}
-          squares={currentSquares}
-          winnerSquares={winnerSquares}
-          onPlay={handlePlay}
-        />
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
         <ol>{moves}</ol>
@@ -66,19 +58,22 @@ export default function Game() {
   );
 }
 
-function Board({ xIsNext, squares, winnerSquares, onPlay }) {
+function Board({ xIsNext, squares, onPlay }) {
+  const [winnerSquares, setWinner] = useState(Array(3).fill(null)); // To store the winning combination
+
   function handleClick(i) {
-    const [winner, combination] = calculateWinner(squares);
-    console.log("BOARD", winner, combination);
+    const [winner] = calculateWinner(squares);
     // squares occupied, or if calculateWinner returns non-null winner
     if (squares[i] || winner) return;
 
     const nextSquares = squares.slice();
     xIsNext ? (nextSquares[i] = "X") : (nextSquares[i] = "O");
-    onPlay(nextSquares, winnerSquares);
+    const [_winner, combination] = calculateWinner(nextSquares);
+    setWinner(combination);
+    onPlay(nextSquares);
   }
 
-  const [winner] = calculateWinner(squares);
+  const [winner, currCombination] = calculateWinner(squares);
   let status;
   // check if all squares are filled yet no winner
   if (!winner && squares.reduce((acc, curr) => acc && curr !== null, true)) {
@@ -106,7 +101,7 @@ function Board({ xIsNext, squares, winnerSquares, onPlay }) {
                   key={index}
                   value={squares[index]}
                   onSquareClick={() => handleClick(index)}
-                  isHighlighted={isWinningSquare}
+                  isHighlighted={isWinningSquare && currCombination}
                 />
               );
             })}
