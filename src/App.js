@@ -28,7 +28,7 @@ export default function Game() {
     );
     // Get row and column from the index
     const { row, col } = getRowCol(lastMoveIndex);
-    const player = lastMoveIndex % 2 === 0 ? "X" : "O";
+    const player = squares[lastMoveIndex];
 
     let description;
     move > 0
